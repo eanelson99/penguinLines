@@ -13,9 +13,9 @@ var drawLines = function(penguins,target,graph,yScale,xScale)
 {
     var lineGenerator = d3.line()
     .x(function(penguin,index) 
-       {return xScale(getPenguinQuiz(penguin))})
+       {return xScale(index)})
     .y(function(penguin)  
-       {return yScale(penguin)})
+       {return yScale(getQuizScores)})
     
     var lines = d3.select(target)
         .select(".graph")
@@ -93,7 +93,7 @@ var displayLineGraph = function(target, penguins)
         .range([graph.height,0])
     
   createAxes(screen,margins,target,graph,xScale,yScale)
-  drawlines(penguins,target,graph,yScale,xScale)
+  drawLines(penguins,target,graph,yScale,xScale)
  
     
 }
