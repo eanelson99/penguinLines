@@ -9,61 +9,55 @@ var getPenguinQuiz = function(penguin)
     }
 
 
-var drawLines = function(penguins,graph,target,yScale,xScale)
+var drawLines = function(penguins,target,graph,yScale,xScale)
 {
     var lineGenerator = d3.line()
-    .x(function(penguin) 
+    .x(function(penguin,index) 
        {return xScale(getPenguinQuiz(penguin))})
     .y(function(penguin)  
-       {return yScale(getPenguinQuiz(penguin))})
-    var lines = d3.select(penguins)
+       {return yScale(penguin)})
+    
+    var lines = d3.select(target)
         .select(".graph")
         .selectAll("g")
-        .data(classData)
+        .data(penguins)
+        .enter()
         .append("g")
-        .attr("class",getPenguinQuiz)
         .classed("line",true)
         .attr("fill","none")
-        .attr("stroke",getPenguinQuiz)
+        .attr("stroke","gray")
+        .attr("stroke-width", 1)
     
     lines.append("path")
-        .datum(getPenguinQuizpenguin)
+        .datum(function(penguin)
+        {return getPenguinQuiz})
         .attr("d", lineGenerator)
     
-    var svg = d3.select("#lines")
-        .append("svg")
-        .attr("width", 750)
-        .attr("height", 500)
-    svg.append("path")
-        .datum(penguins)
-        .attr("class","line")
-        .attr("penguin", line);
-        
 }
                
-var createAxes = function(screen,margins,graph,target,xScale,yScale)
+var createAxes = function(screen,margins,target,graph,xScale,yScale)
 {
     var xAxis = d3.axisBottom(xScale)
-        
-    svg.append("g")
-        .attr("class","axis")
-        .attr("transfrom","translate(0,"+(height-padding)+")")
-        .call(xAxis);
     
     var yAxis = d3.axisLeft(yScale)
-        .ticks(5)
     
-    svg.append("g")
-        .attr("class","axis")
-        .attr("transform","translate("+padding+",0)")
-        .call(yAxis);
+    var axes = d3.select(target)
+        .append("g")
+    axes.append("g")
+        .attr("transform","translate("+margins.left+","
+             +(margins.top+graph.height)+")")
+        .call(xAxis)
+    axes.append("g")
+        .attr("transform","translate("+margins.left+","
+             +(margins.top)+")")
+        .call(yAxis)
 }
 
-var displayLineGraph = function(target,penguins)
+var displayLineGraph = function(target, penguins)
 {  
-    var screen = {width:500,height:400}
-    
-    var margins = {top:15, bottom:40, left:70, right:40}
+    var screen = {width:800, height:600};
+
+    var margins = {top:15, bottom:40, left:70, right:40};
     
     var graph = 
         {
@@ -80,15 +74,26 @@ var displayLineGraph = function(target,penguins)
         .classed("graph",true)
         .attr("transform","translate("+margins.left+","+margins.top+")");
     
-    xScale = d3.scaleLinear()
-        .domain([d3.min(penguins,getPenguinQuiz),d3.max(penguins,getPenguinQuiz)])
+    var xScale = d3.scaleLinear()
+        .domain([0,penguins[0].quizes.length-1])
         .range([0,graph.width])
     
-    yScale = d3.scaleLinear()
-        .domain([d3.min(penguins,index),d3.max(penguins,index)])
+     var lowQuiz = d3.min(penguins,function(penguin)
+    {
+        return d3.min(penguin.quizes, getQuizScores);
+    })
+    
+    var highQuiz = d3.max(penguins,function(penguin)
+    { 
+        return d3.max(penguin.quizes, getQuizScores);
+    })
+    
+   var yScale = d3.scaleLinear()
+        .domain([lowQuiz,highQuiz])
         .range([graph.height,0])
     
-  
+  createAxes(screen,margins,target,graph,xScale,yScale)
+  drawlines(penguins,target,graph,yScale,xScale)
  
     
 }
@@ -97,7 +102,7 @@ var classDataPromise = d3.json("classData.json")
 classDataPromise.then(function(penguins)
                      {
                       console.log("worked", penguins);
-                      displayLineGraph(penguins);
+                      displayLineGraph("#linegraph",penguins);
                        
                      });
                      (function(err){console.log("failed",err)})
